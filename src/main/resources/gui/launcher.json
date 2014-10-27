@@ -1,0 +1,42 @@
+{
+    launcher-frame : {
+        bounds : [100, 100, 850, 450],
+        layout : null,
+        icon : "image/logo_ftb.png",
+        exit-on-close : true
+    },
+
+    tabbed-view : {
+        bounds : [0, 0, 850, 380]
+    },
+
+    bottom-panel : {
+        bounds : [0, 380, 850, 70],
+        layout : null
+    },
+
+    support-panel : {
+        bounds : [0, 0, 450, 70],
+        layout : null
+    },
+
+    control-panel : {
+        bounds : [450, 0, 400, 70],
+        layout : null
+    },
+
+    edit-button : {
+        bounds : [30, 20, 60, 30]
+    },
+
+    launch-button : {
+        bounds : [260, 20, 100, 30]
+    },
+
+    profile-select-box : {
+        bounds : [100, 20, 150, 30]
+    }
+}
+
+
+
