@@ -7,7 +7,10 @@ import net.ftb.locale.I18N;
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by evan on 10/26/14.
@@ -53,8 +56,8 @@ public class GuiUtils {
         }
 
         // set background
-        if (config.has("bg-color")) {
-            obj.setBackground(new Color(Integer.parseInt(config.get("bg-color").getAsString(), 16)));
+        if (config.has("background")) {
+            obj.setBackground(new Color(Integer.parseInt(config.get("background").getAsString(), 16)));
         }
 
         // set container properties
@@ -130,7 +133,7 @@ public class GuiUtils {
         // set bounds
         if (config.has("bounds")) {
             // read bounds
-            Rectangle rect = rectangleFromJson(config.get("bounds").getAsJsonArray());
+            Rectangle rect = rectangleFromJson(config.get("bounds"));
             // handle JFrames internal bounds
             if (obj instanceof JFrame) {
                 // position
@@ -148,11 +151,11 @@ public class GuiUtils {
         }
         // set location (overrides bounds)
         if (config.has("position")) {
-            obj.setLocation(pointFromJson(config.get("position").getAsJsonArray()));
+            obj.setLocation(pointFromJson(config.get("position")));
         }
         // set size (overrides bounds)
         if (config.has("size")) {
-            Dimension size = dimensionFromJson(config.get("size").getAsJsonArray());
+            Dimension size = dimensionFromJson(config.get("size"));
             // size without layout
             obj.setSize(size);
             // size with layout
@@ -161,31 +164,105 @@ public class GuiUtils {
         // set minimum size
         if (config.has("min-size")) {
             // overrides minimum size
-            obj.setMinimumSize(dimensionFromJson(config.get("min-size").getAsJsonArray()));
+            obj.setMinimumSize(dimensionFromJson(config.get("min-size")));
         }
         // set maximum size
         if (config.has("max-size")) {
             // overrides maximum size
-            obj.setMaximumSize(dimensionFromJson(config.get("max-size").getAsJsonArray()));
+            obj.setMaximumSize(dimensionFromJson(config.get("max-size")));
         }
     }
 
-    /**
-     * Create a @c Rectangle object from a JSON array. The array must contain exactly 4 integers, that will be used for
-     * as the constructor parameters of the @c Rectangle object.
-     *
-     * @param array The @c JsonArray object to convert
-     * @return The resulting @c Rectangle object
-     */
-    public static Rectangle rectangleFromJson(JsonArray array) {
-        return new Rectangle(array.get(0).getAsInt(), array.get(1).getAsInt(), array.get(2).getAsInt(), array.get(3).getAsInt());
+    //--------------------------------------------------------------------------------
+    //  JSON to structure conversions
+    //--------------------------------------------------------------------------------
+
+    public static Rectangle rectangleFromJson(JsonElement j) {
+        // check array format
+        if (j.getAsJsonArray().size() == 4) {
+            return new Rectangle(
+                    j.getAsJsonArray().get(0).getAsInt(),
+                    j.getAsJsonArray().get(1).getAsInt(),
+                    j.getAsJsonArray().get(2).getAsInt(),
+                    j.getAsJsonArray().get(3).getAsInt());
+        } else {
+            throw new UnsupportedOperationException();
+        }
     }
 
-    public static Point pointFromJson(JsonArray array) {
-        return new Point(array.get(0).getAsInt(), array.get(1).getAsInt());
+    public static Point pointFromJson(JsonElement j) {
+        // check array format
+        if (j.getAsJsonArray().size() == 2) {
+            return new Point(
+                    j.getAsJsonArray().get(0).getAsInt(),
+                    j.getAsJsonArray().get(1).getAsInt());
+        } else {
+            throw new UnsupportedOperationException();
+        }
     }
 
-    public static Dimension dimensionFromJson(JsonArray array) {
-        return new Dimension(array.get(0).getAsInt(), array.get(1).getAsInt());
+    public static Dimension dimensionFromJson(JsonElement j) {
+        // check array format
+        if (j.getAsJsonArray().size() == 2) {
+            return new Dimension(
+                    j.getAsJsonArray().get(0).getAsInt(),
+                    j.getAsJsonArray().get(1).getAsInt());
+        } else {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    public static Color colorFromJson(JsonElement j) {
+        // select conversion method
+        if (j.isJsonArray() && j.getAsJsonArray().size() == 3) {
+            // convert an array with exactly 3 integers
+            return new Color(
+                    j.getAsJsonArray().get(0).getAsByte(),
+                    j.getAsJsonArray().get(1).getAsByte(),
+                    j.getAsJsonArray().get(2).getAsByte());
+        } else if (j.isJsonPrimitive() && j.getAsJsonPrimitive().isString() && j.getAsString().startsWith("#")) {
+            // convert a string in "#0000000" format
+            return new Color(Integer.parseInt(j.getAsString().substring(1), 16));
+        } else {
+            // invalid formats
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    public static Cursor cursorFromJson(JsonElement j) {
+        // check format
+        if (j.getAsJsonPrimitive().isString()) {
+            return Cursor.getPredefinedCursor(CursorIndex.valueOf(j.getAsString()).index);
+        } else {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    public static  Font fontFromJson(JsonElement j) {
+        return null;
+    }
+
+    private static enum CursorIndex {
+
+        DEFAULT_CURSOR(0),
+        CROSSHAIR_CURSOR(1),
+        TEXT_CURSOR(2),
+        WAIT_CURSOR(3),
+        SW_RESIZE_CURSOR(4),
+        SE_RESIZE_CURSOR(5),
+        NW_RESIZE_CURSOR(6),
+        NE_RESIZE_CURSOR(7),
+        N_RESIZE_CURSOR(8),
+        S_RESIZE_CURSOR(9),
+        W_RESIZE_CURSOR(10),
+        E_RESIZE_CURSOR(11),
+        HAND_CURSOR(12),
+        MOVE_CURSOR(13);
+
+        CursorIndex(int index) {
+            this.index = index;
+        }
+
+        public int index;
     }
 }

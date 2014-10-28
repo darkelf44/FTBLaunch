@@ -1,9 +1,9 @@
 {
     launcher-frame : {
         bounds : [100, 100, 850, 450],
-        layout : null,
         icon : "image/logo_ftb.png",
-        exit-on-close : true
+        exit-on-close : true,
+        layout : null
     },
 
     tabbed-view : {
@@ -12,16 +12,19 @@
 
     bottom-panel : {
         bounds : [0, 380, 850, 70],
+        background : "404040",
         layout : null
     },
 
     support-panel : {
         bounds : [0, 0, 450, 70],
+        background : "404040",
         layout : null
     },
 
     control-panel : {
         bounds : [450, 0, 400, 70],
+        background : "404040",
         layout : null
     },
 
