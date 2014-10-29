@@ -3,21 +3,35 @@ package darkelf.minecraft.launcher.gui;
 import com.google.gson.*;
 import darkelf.util.ClassUtils;
 import net.ftb.locale.I18N;
+import net.ftb.util.OSUtils;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.*;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Created by evan on 10/26/14.
  */
 public class GuiUtils {
 
-    public static JsonElement loadJsonFromResource(String resource) {
+    public static void addLink(JComponent component, final String url) {
+        component.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getButton() == MouseEvent.BUTTON1) {
+                    OSUtils.browse(url);
+                }
+            }
+        });
+    }
+
+    //--------------------------------------------------------------------------------
+    //  Component initialization with JSON
+    //--------------------------------------------------------------------------------
+
+    public static JsonElement loadJson(String resource) {
         try {
             return new JsonParser().parse(new BufferedReader(new InputStreamReader(ClassUtils.getResource(resource).openStream())));
         } catch (IOException e) {
@@ -25,152 +39,78 @@ public class GuiUtils {
         }
     }
 
-    public static JFrame initFrameWithJson(JFrame frame, JsonObject config) {
-        // set layout (should be set before bounds)
-        setLayoutWithJson(frame, config);
-        // set up bounds of the content pane
-        setBoundsWithJson(frame, config);
-        // set icon (frame only)
-        if (config.has("icon")) {
-            frame.setIconImage(Toolkit.getDefaultToolkit().getImage(ClassUtils.getResource(config.get("icon").getAsString())));
-        }
-        // set title (frame only)
-        if (config.has("title")) {
-            frame.setTitle(I18N.getLocaleString(config.get("title").getAsString()));
-        }
-        // return modified frame
-        return frame;
-    }
-
     public static Component initWithJson(Component obj, String config) {
         return initWithJson(obj, new JsonParser().parse(config).getAsJsonObject());
     }
 
-    public static Component initWithJson(Component obj, JsonObject config) {
-        // set up bounds
-        setBoundsWithJson(obj, config);
+    public static Component initWithJson(Component obj, JsonElement j) {
+        GuiWrapper wrap = new GuiWrapper(obj);
+        JsonObject config = j.getAsJsonObject();
 
-        // set enabled
+        // iterate over properties
         if (config.has("enabled")) {
-            obj.setEnabled(config.get("enabled").getAsBoolean());
+            wrap.setEnabled(config.get("enabled").getAsBoolean());
         }
-
-        // set background
-        if (config.has("background")) {
-            obj.setBackground(new Color(Integer.parseInt(config.get("background").getAsString(), 16)));
+        if (config.has("visible")) {
+            wrap.setVisible(config.get("visible").getAsBoolean());
         }
-
-        // set container properties
-        if (obj instanceof Container) {
-            // set layout
-            setLayoutWithJson((Container) obj, config);
+        if (config.has("focusable")) {
+            wrap.setFocusable(config.get("focusable").getAsBoolean());
         }
-
-        // set window properties
-        if (obj instanceof Window) {
-            // set icon
-            if (config.has("icon")) {
-                ((Window) obj).setIconImage(Toolkit.getDefaultToolkit().getImage(ClassUtils.getResource(config.get("icon").getAsString())));
-            }
-
-            // set always on top
-            if (config.has("always-on-top")) {
-                ((Window) obj).setAlwaysOnTop(config.get("always-on-top").getAsBoolean());
-            }
+        if (config.has("bg-color")) {
+            wrap.setBgColor(colorFromJson(config.get("bg-color")));
         }
-
-        // set frame properties
-        if (obj instanceof Frame) {
-            // set title
-            if (config.has("title")) {
-                ((Frame) obj).setTitle(config.get("title").getAsString());
-            }
-
-            // set title - i18n version
-            if (config.has("title-i18n")) {
-                ((Frame) obj).setTitle(I18N.getLocaleString(config.get("title").getAsString()));
-            }
-
-            // set resizeable
-            if (config.has("resizable")) {
-                ((Frame) obj).setResizable(config.get("resizable").getAsBoolean());
-            }
+        if (config.has("fg-color")) {
+            wrap.setFgColor(colorFromJson(config.get("fg-color")));
         }
-
-        // set JFrame properties
-        if (obj instanceof JFrame) {
-            // set exit on close
-            if (config.has("exit-on-close")) {
-                if (config.get("exit-on-close").getAsBoolean()) {
-                    ((JFrame) obj).setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-                } else {
-                    ((JFrame) obj).setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
-                }
-            }
-        }
-
-        // return modified component
-        return obj;
-    }
-
-    private static void setLayoutWithJson(Container obj, JsonObject config) {
-        // set layout TODO: use object to describe layout
-        if (config.has("layout")) {
-            // get layout element
-            JsonElement layout = config.get("layout");
-            // set layout depending on the node
-            if (layout.isJsonNull()) {
-                // set layout to null
-                obj.setLayout(null);
-            } else {
-                // set layout to a new instance of the class
-                obj.setLayout((LayoutManager) ClassUtils.newInstance(layout.getAsString()));
-            }
-        }
-    }
-
-    private static void setBoundsWithJson(Component obj, JsonObject config) {
-        // set bounds
         if (config.has("bounds")) {
-            // read bounds
-            Rectangle rect = rectangleFromJson(config.get("bounds"));
-            // handle JFrames internal bounds
-            if (obj instanceof JFrame) {
-                // position
-                obj.setLocation(rect.getLocation());
-                // size without layout
-                ((JFrame) obj).getContentPane().setSize(rect.getSize());
-                // size with layout
-                ((JFrame) obj).getContentPane().setPreferredSize(rect.getSize());
-            } else {
-                // size without layout
-                obj.setBounds(rect);
-                // size with layout
-                obj.setPreferredSize(obj.getSize());
-            }
+            wrap.setBounds(rectangleFromJson(config.get("bounds")));
         }
-        // set location (overrides bounds)
         if (config.has("position")) {
-            obj.setLocation(pointFromJson(config.get("position")));
+            wrap.setPosition(pointFromJson(config.get("position")));
         }
-        // set size (overrides bounds)
         if (config.has("size")) {
-            Dimension size = dimensionFromJson(config.get("size"));
-            // size without layout
-            obj.setSize(size);
-            // size with layout
-            obj.setPreferredSize(size);
+            wrap.setSize(dimensionFromJson(config.get("size")));
         }
-        // set minimum size
         if (config.has("min-size")) {
-            // overrides minimum size
-            obj.setMinimumSize(dimensionFromJson(config.get("min-size")));
+            wrap.setMinSize(dimensionFromJson(config.get("min-size")));
         }
-        // set maximum size
         if (config.has("max-size")) {
-            // overrides maximum size
-            obj.setMaximumSize(dimensionFromJson(config.get("max-size")));
+            wrap.setMaxSize(dimensionFromJson(config.get("max-size")));
         }
+        if (config.has("cursor")) {
+            wrap.setCursor(cursorFromJson(config.get("cursor")));
+        }
+        if (config.has("font")) {
+            wrap.setFont(fontFromJson(config.get("font")));
+        }
+        if (config.has("border")) {
+            // TODO: set border with Json
+        }
+        if (config.has("tooltip")) {
+            wrap.setToolTip(i18nFromJson(config.get("tooltip")));
+        }
+        if (config.has("icon")) {
+            wrap.setIcon(config.get("icon").getAsString());
+        }
+        if (config.has("resizable")) {
+            wrap.setResizable(config.get("resizable").getAsBoolean());
+        }
+        if (config.has("title")) {
+            wrap.setTitle(i18nFromJson(config.get("title")));
+        }
+        if (config.has("image")) {
+            wrap.setImage(config.get("image").getAsString());
+        }
+        if (config.has("disabled-image")) {
+            wrap.setDisabledImage(config.get("disabled-image").getAsString());
+        }
+        if (config.has("text")) {
+            wrap.setText(i18nFromJson(config.get("text")));
+        }
+
+        // return object
+        return obj;
     }
 
     //--------------------------------------------------------------------------------
@@ -231,15 +171,44 @@ public class GuiUtils {
 
     public static Cursor cursorFromJson(JsonElement j) {
         // check format
-        if (j.getAsJsonPrimitive().isString()) {
+        if (j.isJsonPrimitive() && j.getAsJsonPrimitive().isString()) {
             return Cursor.getPredefinedCursor(CursorIndex.valueOf(j.getAsString()).index);
         } else {
             throw new UnsupportedOperationException();
         }
     }
 
+    public static Object instanceFromJson(JsonElement j) {
+        // check format
+        if (j.isJsonNull()) {
+            return null;
+        } else if (j.isJsonPrimitive() && j.getAsJsonPrimitive().isString()) {
+            return ClassUtils.newInstance(j.getAsString());
+        } else {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    // TODO: implements this
     public static  Font fontFromJson(JsonElement j) {
-        return null;
+        if (j.isJsonNull()) {
+            return null;
+        } else if (j.isJsonArray() && j.getAsJsonArray().size() == 3) {
+            return new Font(j.getAsJsonArray().get(0).getAsString(), FontStyle.valueOf(j.getAsJsonArray().get(1).getAsString()).style, j.getAsJsonArray().get(2).getAsInt());
+        } else {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    public static String i18nFromJson(JsonElement j) {
+        // get string
+        String text = j.getAsString();
+        // strings starting with "@" are used for i18n
+        if (text.startsWith("@")) {
+            return I18N.getLocaleString(text.substring(1));
+        } else {
+            return text;
+        }
     }
 
     private static enum CursorIndex {
@@ -264,5 +233,17 @@ public class GuiUtils {
         }
 
         public int index;
+    }
+
+    private static enum FontStyle {
+        PLAIN(0),
+        BOLD(1),
+        ITALIC(2);
+
+        FontStyle(int style) {
+            this.style = style;
+        }
+
+        public int style;
     }
 }

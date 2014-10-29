@@ -1,12 +1,16 @@
 package darkelf.minecraft.launcher.gui;
 
+import darkelf.util.ClassUtils;
+
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 
 /**
  * A Class that's a super-interface of most swing components. It's used to automatically set properties of various
- * properties among many swing objects.
+ * swing objects. It only contains properties that are well suited for being automatically set by a config file.
  *
  * Created by evan on 10/27/14.
  */
@@ -14,7 +18,6 @@ public class GuiWrapper {
 
     public GuiWrapper(Component component) {
         this.component = component;
-
     }
 
     //--------------------------------------------------------------------------------
@@ -26,7 +29,9 @@ public class GuiWrapper {
     }
 
     public void setVisible(boolean value) {
-        component.setVisible(value);
+        if (! (component instanceof JFrame)) {
+            component.setVisible(value);
+        }
     }
 
     public void setFocusable(boolean value) {
@@ -42,14 +47,8 @@ public class GuiWrapper {
     }
 
     public void setBounds(Rectangle value) {
-        if (component instanceof JFrame) {
-            component.setLocation(value.getLocation());
-            ((JFrame) component).getContentPane().setSize(value.getSize());
-            ((JFrame) component).getContentPane().setPreferredSize(value.getSize());
-        } else {
             component.setBounds(value);
             component.setPreferredSize(value.getSize());
-        }
     }
 
     public void setPosition(Point value) {
@@ -78,19 +77,6 @@ public class GuiWrapper {
     }
 
     //--------------------------------------------------------------------------------
-    // From AWT Container
-    //--------------------------------------------------------------------------------
-
-    // TODO: support complex layouts
-    public void setLayout(LayoutManager value) {
-        if (component instanceof Container) {
-            ((Container) component).setLayout(value);
-        } else {
-            throw new UnsupportedOperationException(getClass().getSimpleName());
-        }
-    }
-
-    //--------------------------------------------------------------------------------
     // From Swing JComponent
     //--------------------------------------------------------------------------------
 
@@ -113,6 +99,65 @@ public class GuiWrapper {
     //--------------------------------------------------------------------------------
     // From Swing JFrame
     //--------------------------------------------------------------------------------
+
+    public void setIcon(String value) {
+        if (component instanceof Frame) {
+            ((Frame) component).setIconImage(Toolkit.getDefaultToolkit().createImage(ClassUtils.getResource(value)));
+        } else {
+            throw new UnsupportedOperationException(getClass().getSimpleName());
+        }
+    }
+
+    public void setResizable(boolean value) {
+        if (component instanceof Frame) {
+            ((Frame) component).setResizable(value);
+        } else {
+            throw new UnsupportedOperationException(getClass().getSimpleName());
+        }
+    }
+
+    public void setTitle(String value) {
+        if (component instanceof Frame) {
+            ((Frame) component).setTitle(value);
+        } else {
+            throw new UnsupportedOperationException(getClass().getSimpleName());
+        }
+    }
+
+    //--------------------------------------------------------------------------------
+    // From JLabel and JButton
+    //--------------------------------------------------------------------------------
+
+    public void setImage(String image) {
+        if (component instanceof JLabel) {
+            ((JLabel) component).setIcon(new ImageIcon(ClassUtils.getResource(image)));
+        } else if (component instanceof AbstractButton) {
+            ((AbstractButton) component).setIcon(new ImageIcon(ClassUtils.getResource(image)));
+        } else {
+            throw new UnsupportedOperationException(getClass().getSimpleName());
+        }
+    }
+
+    public void setDisabledImage(String image) {
+        if (component instanceof JLabel) {
+            ((JLabel) component).setDisabledIcon(new ImageIcon(ClassUtils.getResource(image)));
+        } else if (component instanceof AbstractButton) {
+            ((AbstractButton) component).setDisabledIcon(new ImageIcon(ClassUtils.getResource(image)));
+        } else {
+            throw new UnsupportedOperationException(getClass().getSimpleName());
+        }
+    }
+
+    public void setText(String text) {
+        if (component instanceof  JLabel) {
+            ((JLabel) component).setText(text);
+        } else if (component instanceof AbstractButton) {
+            ((AbstractButton) component).setText(text);
+        } else {
+            throw new UnsupportedOperationException(getClass().getSimpleName());
+        }
+    }
+
 
     protected Component component;
 }

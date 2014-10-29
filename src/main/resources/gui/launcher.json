@@ -1,39 +1,79 @@
 {
-    launcher-frame : {
-        bounds : [100, 100, 850, 450],
-        icon : "image/logo_ftb.png",
-        exit-on-close : true,
-        layout : null
+    frame : {
+        position : [100, 100],
+        resizable : true,
+        title: "Better FTB Launcher - Version 0.1 (FTB: 1.4.4)",
+        icon : "image/logo_ftb.png"
+    },
+
+    content-pane : {
+        size : [850, 450]
     },
 
     tabbed-view : {
         bounds : [0, 0, 850, 380]
     },
 
+    news-tab : {
+    },
+
+    options-tab : {
+    },
+
+    modpacks-tab : {
+    },
+
+    third-party-tab : {
+    },
+
+    maps-and-textures-tab : {
+    },
+
     bottom-panel : {
         bounds : [0, 380, 850, 70],
-        background : "404040",
-        layout : null
+        bg-color : [25, 25, 25]
     },
 
     support-panel : {
         bounds : [0, 0, 450, 70],
-        background : "404040",
-        layout : null
+        bg-color : [25, 25, 25],
+        links : ["ftb-link", "creeper-host-link", "tug-link"],
+        layout-h-gap : 20,
+        layout-v-gap : 20
+    },
+
+    ftb-link : {
+        image : "image/logo_ftb.png",
+        link : "http://www.feed-the-beast.com",
+        cursor : "HAND_CURSOR"
+    },
+
+    creeper-host-link : {
+        image : "image/logo_creeperHost.png",
+        link : "http://billing.creeperhost.net/link.php?id=2",
+        cursor : "HAND_CURSOR"
+    },
+
+    tug-link: {
+        image : "image/logo_TUG.png",
+        link : "http://feed-the-beast.com/tug",
+        cursor : "HAND_CURSOR"
     },
 
     control-panel : {
         bounds : [450, 0, 400, 70],
-        background : "404040",
-        layout : null
+        min-size : [400, 70],
+        bg-color : [25, 25, 25]
     },
 
     edit-button : {
-        bounds : [30, 20, 60, 30]
+        bounds : [30, 20, 60, 30],
+        text : "@EDIT_BUTTON"
     },
 
     launch-button : {
-        bounds : [260, 20, 100, 30]
+        bounds : [260, 20, 100, 30],
+        text : "@LAUNCH_BUTTON"
     },
 
     profile-select-box : {

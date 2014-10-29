@@ -13,6 +13,6 @@ public class Main {
      * @param args Command line arguments
      */
     public static void main(String[] args) {
-        new LauncherFrame().setVisible(true);
+        new LauncherFrame(GuiUtils.loadJson("gui/launcher.json")).setVisible(true);
     }
 }

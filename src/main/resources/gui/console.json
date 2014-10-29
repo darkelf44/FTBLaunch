@@ -1,0 +1,10 @@
+{
+    console-frame : {
+        position : [0 ,0 ],
+        title : "@CONSOLE_TITLE"
+    }
+
+    content-pane : {
+        size : [800, 400]
+    }
+}
